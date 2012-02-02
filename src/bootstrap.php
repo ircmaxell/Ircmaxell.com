@@ -1,8 +1,8 @@
 <?php
 
 spl_autoload_register(function ($class) {
-    $file = substr(str_replace('\\', '/', $class), $nslen);
-    $path = __DIR__ . $file . '.php';
+    $file = str_replace('\\', '/', $class);
+    $path = __DIR__ . '/' . $file . '.php';
     if (file_exists($path)) {
         require $path;
     }
@@ -11,3 +11,7 @@ spl_autoload_register(function ($class) {
         require $path;
     }
 });
+
+require_once dirname(__DIR__) . '/config/config.php';
+
+defined('PROXY') OR define('PROXY', false);
