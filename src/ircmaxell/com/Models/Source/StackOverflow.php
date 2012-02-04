@@ -2,17 +2,19 @@
 
 namespace ircmaxell\com\Models\Source;
 
-use ircmaxell\com\Models\Post\StackOverflow as StackOverflowPost;
-use ircmaxell\com\Models\Post\StackOverflowComment;
-
 use ircmaxell\com\Sources\REST;
 
 class StackOverflow implements \ircmaxell\com\Models\Source {
 
     protected $username = '';
+    protected $mapper;
 
-    public function __construct($username) {
+    public function __construct($username, $mapper = null) {
         $this->username = $username;
+        if (!$mapper) {
+            $mapper = new \ircmaxell\com\DataMappers\StackOverflow;
+        }
+        $this->mapper = $mapper;
     }
 
     /**
@@ -31,11 +33,10 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
         $rest = new REST($uri);
         $data = $rest->get($params);
         $source = $data ? json_decode($data, true) : array();
-        switch ($type) {
-            case 'comments':
-                return new StackOverflowComment($source[$type][0]);
-            default:
-                return new StackOverflowPost($source[$type][0], substr($type, 0, -1));
+        if (isset($source[$type]) && isset($source[$type][0])) {
+            return $this->mapper->getPost($source[$type][0]);
+        } else {
+            return null;
         }
 
     }
@@ -62,15 +63,19 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
             return $result;
         }
         foreach ($sources['user_timelines'] as $source) {
+            $post = false;
             switch ($source['timeline_type']) {
                 case 'askoranswered':
-                    $result[] = $this->getPost($source['post_id'], $source['post_type'] . 's');
+                    $post = $this->getPost($source['post_id'], $source['post_type'] . 's');
                     break;
                 case 'badge':
                     break;
                 case 'comment':
-                    $result[] = $this->getPost($source['comment_id'], 'comments');
+                    $post = $this->getPost($source['comment_id'], 'comments');
                     break;
+            }
+            if ($post) {
+                $result[] = $post;
             }
         }
         return $result;

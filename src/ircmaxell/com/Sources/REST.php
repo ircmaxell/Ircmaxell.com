@@ -48,7 +48,7 @@ class REST {
         } elseif ($params) {
             $data = $params;
         }
-        return $this->getViaHttp($uri, 'GET', $params);
+        return $this->getViaHttp($uri, 'GET', $data);
     }
 
     public function setUrl($url) {

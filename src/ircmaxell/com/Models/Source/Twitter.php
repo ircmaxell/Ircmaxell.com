@@ -2,16 +2,19 @@
 
 namespace ircmaxell\com\Models\Source;
 
-use ircmaxell\com\Models\Post\Twitter as TwitterPost;
-
 use ircmaxell\com\Sources\REST;
 
 class Twitter implements \ircmaxell\com\Models\Source {
 
     protected $username = '';
+    protected $mapper;
 
-    public function __construct($username) {
+    public function __construct($username, $mapper = null) {
         $this->username = $username;
+        if (!$mapper) {
+            $mapper = new \ircmaxell\com\DataMappers\Twitter;
+        }
+        $this->mapper = $mapper;
     }
 
     /**
@@ -30,7 +33,7 @@ class Twitter implements \ircmaxell\com\Models\Source {
         $rest = new REST($uri);
         $data = $rest->get($params);
         $source = $data ? json_decode($data, true) : array();
-        return new TwitterPost($source);
+        return $this->mapper->getPost($source);
     }
 
     /**
@@ -56,7 +59,7 @@ class Twitter implements \ircmaxell\com\Models\Source {
         $sources = $data ? json_decode($data, true) : array();
         $result = array();
         foreach ($sources as $source) {
-            $result[] = new TwitterPost($source);
+            $result[] = $this->mapper->getPost($source);($source);
         }
         return $result;
     }
