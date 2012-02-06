@@ -11,7 +11,6 @@ $mysqli = new ircmaxell\com\Sources\MySQLi($config['database']);
 $mapper = new ircmaxell\com\DataMappers\Post($mysqli);
 
 foreach ($config['sources'] as $name => $config) {
-    //if ($name != 'StackOverflow') continue;
     $r = new ReflectionClass('\\ircmaxell\\com\\Models\\Source\\' . $name);
     $source = $r->newInstanceArgs($config);
     $data = $source->getLatestPosts(0, 10);

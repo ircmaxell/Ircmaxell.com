@@ -4,7 +4,7 @@ namespace ircmaxell\com\Models\Source;
 
 use ircmaxell\com\Sources\REST;
 
-class Twitter implements \ircmaxell\com\Models\Source {
+class GitHub implements \ircmaxell\com\Models\Source {
 
     protected $username = '';
     protected $mapper;
@@ -12,7 +12,7 @@ class Twitter implements \ircmaxell\com\Models\Source {
     public function __construct($username, $mapper = null) {
         $this->username = $username;
         if (!$mapper) {
-            $mapper = new \ircmaxell\com\DataMappers\Twitter;
+            $mapper = new \ircmaxell\com\DataMappers\GitHub;
         }
         $this->mapper = $mapper;
     }
@@ -25,7 +25,8 @@ class Twitter implements \ircmaxell\com\Models\Source {
      * @return Post An instance of the post type for the source class
      */
     public function getPost($id) {
-        $uri = 'https://api.twitter.com/1/statuses/show/' . $id . '.json';
+        throw new \BadMethodCallException('Not Implemented');
+        $uri = 'https://api.github.com/users/'.$id.'/events';
         $params = array(
             'include_entities' => '1',
             'trim_user' => '0',
@@ -45,21 +46,20 @@ class Twitter implements \ircmaxell\com\Models\Source {
      * @return Post[] An array of post objects for the source class
      */
     public function getLatestPosts($start = 0, $limit = 10) {
-        $uri = 'https://api.twitter.com/1/statuses/user_timeline.json';
+        $uri = 'https://api.github.com/users/' . $this->username . '/events';
         $params = array(
-            'screen_name' => $this->username,
-            'count' => $limit,
+            'per_page' => $limit,
             'page' => ($start / $limit) + 1,
-            'include_rts' => '1',
-            'include_entities' => '1',
-            'exclude_replies' => '0',
         );
         $rest = new REST($uri);
         $data = $rest->get($params);
         $sources = $data ? json_decode($data, true) : array();
         $result = array();
         foreach ($sources as $source) {
-            $result[] = $this->mapper->getPost($source);
+            $post = $this->mapper->getPost($source);
+            if ($post) {
+                $result[] = $post;
+            }
         }
         return $result;
     }

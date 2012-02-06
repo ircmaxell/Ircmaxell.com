@@ -22,6 +22,7 @@ class Twitter {
             'thumbnail' => '',
             'created_at' => date('Y-m-d H:i:s', strtotime($data['created_at'])),
             'has_children' => false,
+            'source_url' => 'https://www.twitter.com/#!/' . $data['user']['name'] . '/status/' . $data['id_str'],
             'rawData' => $data,
         );
         return new PostModel($postData);
