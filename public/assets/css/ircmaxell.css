@@ -1,0 +1,49 @@
+/* 
+    Document   : ircmaxell
+    Created on : Feb 4, 2012, 8:26:26 PM
+    Author     : ircmaxell
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+ul.posts {
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+}
+
+div.post {
+    border: 1px solid black;
+    overflow: hidden;
+    height: 50px;
+    
+}
+
+div.post:hover {
+    height: auto;
+}
+
+div.post div.post-body {
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+}
+
+div.post:hover div.post-body {
+    height: auto;
+    padding: 24px;
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+}

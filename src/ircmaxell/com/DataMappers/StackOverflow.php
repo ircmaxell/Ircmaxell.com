@@ -18,11 +18,16 @@ class StackOverflow {
             'parent_id' => null,
             'type' => 'stackoverflow',
             'type_id' => '',
+            'user' => $data['owner']['display_name'],
+            'type_user_id' => $data['owner']['user_id'],
             'thumbnail' => '',
+            'title' => isset($data['title']) ? $data['title'] : substr(strip_tags($data['body']), 0, 30),
             'body' => $data['body'],
             'summary' => $data['body'],
             'created_at' => date('Y-m-d H:i:s', $data['creation_date']),
             'has_children' => isset($data['comments']) && count($data['comments']) > 0,
+            'children' => array(),
+            'rawData' => $data,
         );
         if (isset($data['comment_id'])) {
             $postData['type'] = 'stackoverflow_comment';
@@ -40,7 +45,11 @@ class StackOverflow {
             $postData['title'] = $data['title'];
             $postData['summary'] = $data['body'];
         }
-
+        if ($postData['has_children']) {
+            foreach ($data['comments'] as $comment) {
+                $postData['children'][] = $this->getPost($comment);
+            }
+        }
         return new PostModel($postData);
     }
 

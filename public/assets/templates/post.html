@@ -1,4 +1,14 @@
 <div class="post">
     <h3><img src="/assets/icons/{{icon}}" width="16" height="16" />{{title}}</h3>
-    <p>{{&body}}</p>
+    <div class="post-body">{{&body}}</div>
+    {{#has_children}}
+    <ul class="children">
+        {{#children}}
+        <li>
+            <h4>{{user}} - {{title}}</h4>
+            <p>{{&body}}</p>
+        </li>
+        {{/children}}
+    </ul>
+    {{/has_children}}
 </div>

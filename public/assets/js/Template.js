@@ -26,12 +26,15 @@ var ircmaxell = ircmaxell || {};
             }
         }
         $.extend(this, {
-            render: function(target, data, partials) {
+            render: function(target, data, partials, callback) {
                 this.renderToString(data, partials, function(html) {
                     $(target).html(html);
+                    if (callback) {
+                        callback();
+                    }
                 });
             },
-            renderToString: function(data, partials, callback) {
+            renderToString: function(data, partials, callback, onDone) {
                 var value = '';
                 if (templateCache[file]) {
                     value = $.mustache(templateCache[file], data, partials);
@@ -40,8 +43,11 @@ var ircmaxell = ircmaxell || {};
                     }
                 } else {
                     templateCallbacks[file].add(function(template) {
-                        callback.html($.mustache(template, data, partials));
+                        callback($.mustache(template, data, partials));
                     })
+                }
+                if (onDone) {
+                    onDone();
                 }
                 return value;
             }

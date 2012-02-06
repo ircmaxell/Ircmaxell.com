@@ -13,13 +13,14 @@ class GooglePlus {
             'type_id' => $data['id'],
             'user' => $data['actor']['displayName'],
             'type_user_id' => $data['actor']['id'],
-            'title' => isset($data['title']) ? $data['title'] : $data['object']['content'],
+            'title' => isset($data['title']) ? $data['title'] : substr(strip_tags($data['object']['content']), 0, 30),
             'summary' => $data['object']['content'],
             'body' => $data['object']['content'],
             'thumbnail' => '',
             'created_at' => date('Y-m-d H:i:s', strtotime($data['published'])),
             'has_children' => !empty($data['children']),
-            'children' => array()
+            'children' => array(),
+            'rawData' => $data,
         );
         if (!empty($data['object']['attachments'])) {
             foreach ($data['object']['attachments'] as $attachment) {

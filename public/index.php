@@ -2,6 +2,16 @@
 
 require_once dirname(__DIR__) . '/src/bootstrap.php';
 
+$config = require_once PATH_ROOT . '/config/settings.php';
+
+defined('PROXY') OR define('PROXY', isset($config['proxy']) ? $config['proxy'] : false);
+
+$mysqli = new ircmaxell\com\Sources\MySQLi($config['database']);
+
+$postMapper = new ircmaxell\com\DataMappers\Post($mysqli);
+
+$loader = new ircmaxell\com\ResourceLoader($config['resources'], array($mysqli, $postMapper));
+
 $router = new \ircmaxell\com\Router;
 
 $router->addRoute('get', '(^/?$)', function($match, $request, $response) {
@@ -10,22 +20,7 @@ $router->addRoute('get', '(^/?$)', function($match, $request, $response) {
     return true;
 });
 
-$router->addRoute('*', '(^(/[^/]*)*/?$)', function($match, $request, $response) {
-    $path = explode('/', trim($match[0], ' /'));
-    $args = array();
-    while ($path) {
-        $class = '\\ircmaxell\\com\\Resources\\' . implode('\\', $path);
-        if (class_exists($class) && method_exists($class, $request->getMethod())) {
-            $method = $request->getMethod();
-            $reflector = new \ReflectionClass($class);
-            $obj = $reflector->newInstanceArgs($args);
-            $obj->$method($request, $response);
-            return true;
-        }
-        array_unshift($args, array_pop($path));
-    }
-    return false;
-});
+$loader->registerRoutes($router);
 
 try {
 
@@ -34,6 +29,6 @@ try {
 } catch (Exception $e) {
     $response = new \ircmaxell\com\Response;
     $response->setStatus(500);
-    $response->setBody('test');
+    $response->setBody($e->getMessage());
     $response->render();
 }

@@ -7,7 +7,8 @@ class Response {
     protected static $statusCodes = array(
         200 => '200 Ok',
         404 => '404 Not Found',
-        405 => '405 Not Allowed'
+        405 => '405 Not Allowed',
+        500 => '500 Internal Server Error',
     );
 
     protected $status = 200;

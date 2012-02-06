@@ -78,7 +78,7 @@ class Post {
         if (!in_array($sort, $this->fields)) {
             throw new InvalidArgumentException('Invalid Sort Field Provided');
         }
-        $sql = 'SELECT * FROM `posts` WHERE ORDER BY `'.$sort.'` LIMIT ?, ?';
+        $sql = 'SELECT * FROM `posts` WHERE `parent_id` IS NULL ORDER BY `'.$sort.'` LIMIT ?, ?';
         return $this->loadSet($sql, array($offset, $limit));
     }
     
@@ -101,11 +101,21 @@ class Post {
         return $this->loadSingle($sql, array($type, $id));
     }
     
+    public function loadByParentId($id) {
+        $sql = 'SELECT * FROM `posts` WHERE parent_id = ?';
+        return $this->loadSet($sql, array($id));
+
+    }
+    
     protected function loadSet($sql, $params) {
         $results = array();
         $result = $this->mysqli->query($sql, $params);
         while ($row = $result->fetch_assoc()) {
-            $results[] = new PostModel($row);
+            $tmp = new PostModel($row);
+            if ($tmp->has_children) {
+                $tmp->children = $this->loadByParentId($tmp->id);
+            }
+            $results[] = $tmp;
         }
         return $results;
     }

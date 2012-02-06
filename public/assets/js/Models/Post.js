@@ -15,29 +15,18 @@ ircmaxell.Models = ircmaxell.Models || {};
             return ret;
         }
     };
-    ircmaxell.Models.Post = new function() {
-        $.extend(this, {
-            getData: function(post) {
-                return {
-                    body: post.getBody(),
-                    children: map(post.getChildren(), this.getData),
-                    icon: post.getIcon(),
-                    summary: post.getSummary(),
-                    thumbnail: post.getThumbnail(),
-                    title: post.getTitle()
-                };
+    ircmaxell.Models.Post = function(data) {
+        data.has_children = !!data.has_children;
+        $.extend(this, data, {
+            getData: function() {
+                return data;
             },
-            loadPost: function(data) {
-                if (data.type && data.data && this[data.type]) {
-                    return new this[data.type](data.data);
-                }
-                return null;
-            },
-            loadPosts: function(data) {
-                var self = this;
-
-                return map(data, function(post) { return self.loadPost(post); });
-            }
+            children: []
         });
+        if (data.children) {
+            for (var i = 0; i < data.children.length; i++) {
+                this.children[i] = new ircmaxell.Models.Post(data.children[i]);
+            }
+        }
     };
 })(jQuery, ircmaxell);

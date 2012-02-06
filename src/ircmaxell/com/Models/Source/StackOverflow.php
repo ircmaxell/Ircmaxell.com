@@ -66,12 +66,10 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
             $post = false;
             switch ($source['timeline_type']) {
                 case 'askoranswered':
+                case 'comment':
                     $post = $this->getPost($source['post_id'], $source['post_type'] . 's');
                     break;
                 case 'badge':
-                    break;
-                case 'comment':
-                    $post = $this->getPost($source['comment_id'], 'comments');
                     break;
             }
             if ($post) {

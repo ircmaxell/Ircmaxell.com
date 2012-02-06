@@ -10,12 +10,13 @@ var ircmaxell = (function($) {
 
     $(function() {
         var template = new ircmaxell.Template('/assets/templates/posts.html');
-        ircmaxell.Resources.Post.loadPosts(function(posts) {
+        ircmaxell.Resources.Posts.load(function(posts) {
             new ircmaxell.Template('/assets/templates/post.html', function(postTemplate) {
-                var data = posts.map(function(post) {
-                    return postTemplate.renderToString(post.getData());
+                template.render('body', {}, {}, function() {
+                    for (var i = 0; i < posts.length; i++) {
+                         $('ul.posts').append(postTemplate.renderToString(posts[i].getData()));
+                    }
                 });
-                template.render('body', {posts: data});
             });
 
         });
