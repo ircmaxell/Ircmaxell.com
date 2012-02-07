@@ -19,6 +19,7 @@ class Post {
         'thumbnail',
         'created_at',
         'has_children',
+        'source_url',
         'rawData'
     );
 
@@ -42,7 +43,11 @@ class Post {
                     continue;
                 }
                 $sql .= '`' . $field . '` = ?, ';
-                $values[] = $post->$field;
+                if ($field == 'rawData') {
+                    $values[] = serialize($post->$field);
+                } else {
+                    $values[] = $post->$field;
+                }
             }
             $sql = rtrim($sql, ' ,');
             $sql .= ' WHERE `id` = ?';
@@ -54,7 +59,11 @@ class Post {
                 implode(', ', array_map(function() { return '?'; }, $this->fields)) .
                 ')';
             foreach ($this->fields as $field) {
-                $values[] = $post->$field;
+                if ($field == 'rawData') {
+                    $values[] = serialize($post->$field);
+                } else {
+                    $values[] = $post->$field;
+                }
             }
         }
         $this->mysqli->query($sql, $values);
@@ -75,8 +84,9 @@ class Post {
     }
 
     public function saveTag($tag, $postId) {
+        $tag = ucwords(strtolower($tag));
         $sql = 'SELECT id FROM `tags` WHERE `name` LIKE ? LIMIT 1';
-        $result = $this->mysqli->query($sql, $params);
+        $result = $this->mysqli->query($sql, array($tag));
         $row = $result->fetch_assoc();
         if ($row) {
             $id = $row['id'];
@@ -137,7 +147,28 @@ class Post {
             if ($tmp->has_children) {
                 $tmp->children = $this->loadByParentId($tmp->id);
             }
-            $results[] = $tmp;
+            $results[$tmp->id] = $tmp;
+        }
+        unset($row);
+        $inClause = array();
+        $values = array();
+        foreach ($results as $row) {
+            $inClause[] = '?';
+            $values[] = $row->id;
+        }
+        if ($inClause) {
+            $result = $this->mysqli->query('SELECT `post_id`, `name` FROM `tags` JOIN `post_to_tag` WHERE `post_id` IN ('. implode(',', $inClause).')', $values);
+            $tags = array();
+            $result = $this->mysqli->query($sql, array($row->id));
+            while ($row = $result->fetch_assoc()) {
+                $tags = $results[$row['post_id']]->tags;
+                if ($tags) {
+                    $tags[] = $row['name'];
+                } else {
+                    $tags = array($row['name']);
+                }
+                $results[$row['post_id']]->tags = $tags;
+            }
         }
         return $results;
     }

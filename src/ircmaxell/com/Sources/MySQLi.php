@@ -69,6 +69,7 @@ class MySQLi extends \MySQLi {
                     $result[0] .= 's';
                     break;
                 default:
+                    var_dump($param);
                     throw new \InvalidArgumentException('Invalid Param Passed: ' . getType($param));
             }
         }

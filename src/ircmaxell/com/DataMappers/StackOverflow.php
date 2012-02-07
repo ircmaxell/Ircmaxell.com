@@ -25,9 +25,9 @@ class StackOverflow {
             'body' => $data['body'],
             'summary' => $data['body'],
             'created_at' => date('Y-m-d H:i:s', $data['creation_date']),
-            'has_children' => isset($data['comments']) && count($data['comments']) > 0,
+            'has_children' => $data['has_children'],
             'source_url' => '',
-            'children' => array(),
+            'children' => $data['children'],
             'rawData' => $data,
         );
         if (isset($data['comment_id'])) {
@@ -36,10 +36,10 @@ class StackOverflow {
             $postData['title'] = substr(strip_tags($data['body']), 0, 30);
             $postData['summary'] = $data['body'];
             $postData['source_url'] = 'http://www.stackoverflow.com/';
-            if (isset($data['answer_id'])) {
-                $postData['source_url'] .= 'a/' . $data['answer_id'] . '/' . $data['owner']['user_id'];
+            if ($data['post_type'] == 'answer') {
+                $postData['source_url'] .= 'a/' . $data['post_id'] . '/' . $data['owner']['user_id'];
             } else {
-                $postData['source_url'] .= 'q/' . $data['question_id'] . '/' . $data['owner']['user_id'];
+                $postData['source_url'] .= 'q/' . $data['post_id'] . '/' . $data['owner']['user_id'];
             }
         } elseif (isset($data['answer_id'])) {
             $postData['type'] = 'stackoverflow_answer';
@@ -54,11 +54,7 @@ class StackOverflow {
             $postData['title'] = $data['title'];
             $postData['summary'] = $data['body'];
             $postData['source_url'] = 'http://www.stackoverflow.com/q/' . $data['question_id'] . '/' . $data['owner']['user_id'];
-        }
-        if ($postData['has_children']) {
-            foreach ($data['comments'] as $comment) {
-                $postData['children'][] = $this->getPost($comment);
-            }
+            $postData['tags'] = $data['tags'];
         }
         return new PostModel($postData);
     }

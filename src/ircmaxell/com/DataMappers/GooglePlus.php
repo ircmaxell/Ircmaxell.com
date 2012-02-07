@@ -19,7 +19,7 @@ class GooglePlus {
             'thumbnail' => '',
             'created_at' => date('Y-m-d H:i:s', strtotime($data['published'])),
             'has_children' => !empty($data['children']),
-            'source_url' => $data['object']['url'],
+            'source_url' => isset($data['object']['url']) ? $data['object']['url'] : '',
             'children' => array(),
             'rawData' => $data,
         );

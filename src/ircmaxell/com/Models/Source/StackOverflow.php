@@ -25,20 +25,11 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
      * @return Post An instance of the post type for the source class
      */
     public function getPost($id, $type = 'answers') {
-        $uri = 'http://api.stackoverflow.com/1.1/' . $type . '/' . $id;
-        $params = array(
-            'comments' => 'true',
-            'body' => 'true'
-        );
-        $rest = new REST($uri);
-        $data = $rest->get($params);
-        $source = $data ? json_decode($data, true) : array();
-        if (isset($source[$type]) && isset($source[$type][0])) {
-            return $this->mapper->getPost($source[$type][0]);
-        } else {
-            return null;
+        $post = $this->getPostsByIds($id, $type, true);
+        if (isset($post[0])) {
+            return $this->mapToObject($post[0]);
         }
-
+        return null;
     }
 
     /**
@@ -62,21 +53,69 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
         if (!isset($sources['user_timelines'])) {
             return $result;
         }
+        $posts = array(
+            'questions' => array(),
+            'answers' => array(),
+        );
         foreach ($sources['user_timelines'] as $source) {
-            $post = false;
             switch ($source['timeline_type']) {
                 case 'askoranswered':
                 case 'comment':
-                    $post = $this->getPost($source['post_id'], $source['post_type'] . 's');
+                    $posts[$source['post_type'] . 's'][] = $source['post_id'];
                     break;
                 case 'badge':
                     break;
             }
-            if ($post) {
-                $result[] = $post;
-            }
+        }
+        $answer_ids = implode(';', array_unique($posts['answers']));
+        foreach ($this->getPostsByIds($answer_ids, 'answers') as $answer) {
+            $posts['questions'][] = $answer['question_id'];
+        }
+        $question_ids = implode(';', array_unique($posts['questions']));
+        foreach ($this->getPostsByIds($question_ids, 'questions', true) as $question) {
+            $result[] = $this->mapToObject($question);
         }
         return $result;
     }
 
+    
+    protected function getPostsByIds($ids, $type, $full = false) {
+        $uri = 'http://api.stackoverflow.com/1.1/' . $type . '/' . $ids;
+        if ($full) {
+            $params = array(
+                'comments' => 'true',
+                'body' => 'true',
+                'answers' => 'true',
+            );
+        } else {
+            $params = array();
+        }
+        $rest = new REST($uri);
+        $data = $rest->get($params);
+        $source = $data ? json_decode($data, true) : array();
+        return isset($source[$type]) ? $source[$type] : array();
+    }
+    
+    protected function mapToObject(array $data) {
+        $children = array();
+        if (isset($data['comments'])) {
+            foreach ($data['comments'] as $comment) {
+                if (isset($data['tags'])) {
+                    $comment['tags'] = $data['tags'];
+                }
+                $children[] = $this->mapToObject($comment);
+            }
+        }
+        if (isset($data['answers'])) {
+            foreach ($data['answers'] as $answer) {
+                if (isset($data['tags'])) {
+                    $answer['tags'] = $data['tags'];
+                }
+                $children[] = $this->mapToObject($answer);
+            }
+        }
+        $data['children'] = $children;
+        $data['has_children'] = !empty($children);
+        return $this->mapper->getPost($data);
+    }
 }

@@ -64,6 +64,9 @@ class Blogger implements \ircmaxell\com\Models\Source {
         foreach ($sources['items'] as $source) {
             if (isset($source['replies']) && $source['replies']['totalItems'] > 0) {
                 $source['children'] = $this->getComments($source['replies']['selfLink']);
+                foreach ($source['children'] AS &$child) {
+                    $child['url'] = $source['url'];
+                }
             }
             $result[] = $this->mapper->getPost($source);
         }
