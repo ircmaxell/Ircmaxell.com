@@ -56,11 +56,16 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
         $posts = array(
             'questions' => array(),
             'answers' => array(),
+            'result' => array(),
         );
         foreach ($sources['user_timelines'] as $source) {
             switch ($source['timeline_type']) {
                 case 'askoranswered':
+                    $posts['result'][] = array('stackoverflow_' . $source['post_type'], $source['post_id']);
+                    $posts[$source['post_type'] . 's'][] = $source['post_id'];
+                    break;
                 case 'comment':
+                    $posts['result'][] = array('stackoverflow_comment', $source['comment_id']);
                     $posts[$source['post_type'] . 's'][] = $source['post_id'];
                     break;
                 case 'badge':
@@ -72,9 +77,16 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
             $posts['questions'][] = $answer['question_id'];
         }
         $question_ids = implode(';', array_unique($posts['questions']));
+        $questions = array();
         foreach ($this->getPostsByIds($question_ids, 'questions', true) as $question) {
-            $result[] = $this->mapToObject($question);
+            $questions[] = $this->mapToObject($question);
         }
+        // Re-compute the fields
+        foreach ($posts['result'] as $post) {
+            list ($key, $value) = $post;
+            $result[] = $this->findPostInArray($questions, $key, $value);
+        }
+        
         return $result;
     }
 
@@ -115,7 +127,24 @@ class StackOverflow implements \ircmaxell\com\Models\Source {
             }
         }
         $data['children'] = $children;
-        $data['has_children'] = !empty($children);
         return $this->mapper->getPost($data);
+    }
+    
+    protected function findPostInArray(array $posts, $post_type, $post_id) {
+        foreach ($posts as $post) {
+            if ($post->type == $post_type && $post->type_id == $post_id) {
+                return $post;
+            } elseif ($post->children) {
+                $test = $this->findPostInArray($post->children, $post_type, $post_id);
+                if ($test) {
+                    if (!$test->parent) {
+                        $test->parent = clone $post;
+                        $test->parent->children = array();
+                    }
+                    return $test;
+                }
+            }
+        }
+        return false;
     }
 }

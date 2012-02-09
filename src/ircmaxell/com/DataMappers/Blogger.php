@@ -8,7 +8,6 @@ class Blogger {
 
     public function getPost(array $data = array()) {
         $postData = array(
-            'parent_id' => null,
             'type' => 'blogger',
             'type_id' => $data['id'],
             'user' => $data['author']['displayName'],
@@ -18,11 +17,11 @@ class Blogger {
             'body' => $data['content'],
             'thumbnail' => '',
             'created_at' => date('Y-m-d H:i:s', strtotime($data['published'])),
-            'has_children' => !empty($data['children']),
             'source_url' => $data['url'],
-            'children' => array(),
             'tags' => isset($data['labels']) ? $data['labels'] : array(),
             'rawData' => $data,
+            'parent' => null,
+            'children' => array(),
         );
         if (isset($data['children'])) {
             foreach ($data['children'] as $child) {

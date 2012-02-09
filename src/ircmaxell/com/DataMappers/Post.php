@@ -8,7 +8,6 @@ class Post {
 
     protected $fields = array(
         'id',
-        'parent_id',
         'type',
         'type_id',
         'user',
@@ -18,9 +17,10 @@ class Post {
         'body',
         'thumbnail',
         'created_at',
-        'has_children',
         'source_url',
-        'rawData'
+        'rawData',
+        'parent',
+        'children',
     );
 
     protected $mysqli;
@@ -43,7 +43,7 @@ class Post {
                     continue;
                 }
                 $sql .= '`' . $field . '` = ?, ';
-                if ($field == 'rawData') {
+                if (in_array($field, array('rawData', 'parent', 'children'))) {
                     $values[] = serialize($post->$field);
                 } else {
                     $values[] = $post->$field;
@@ -59,7 +59,7 @@ class Post {
                 implode(', ', array_map(function() { return '?'; }, $this->fields)) .
                 ')';
             foreach ($this->fields as $field) {
-                if ($field == 'rawData') {
+                if (in_array($field, array('rawData', 'parent', 'children'))) {
                     $values[] = serialize($post->$field);
                 } else {
                     $values[] = $post->$field;
@@ -69,12 +69,6 @@ class Post {
         $this->mysqli->query($sql, $values);
         if (!$id) {
             $post->id = $this->mysqli->insert_id;
-        }
-        if ($post->has_children) {
-            foreach ($post->children as $child) {
-                $child->parent_id = $post->id;
-                $this->save($child);
-            }
         }
         if ($post->tags) {
             foreach ($post->tags as $tag) {
@@ -110,8 +104,8 @@ class Post {
         if (!in_array($sort, $this->fields)) {
             throw new InvalidArgumentException('Invalid Sort Field Provided');
         }
-        $sql = 'SELECT * FROM `posts` WHERE `parent_id` IS NULL ORDER BY `'.$sort.'` LIMIT ?, ?';
-        return $this->loadSet($sql, array($offset, $limit));
+        $sql = 'SELECT * FROM `posts` ORDER BY `'.$sort.'` DESC LIMIT '.(int) $offset.', '.(int) $limit;
+        return $this->loadSet($sql, array());
     }
 
     public function findByType($type, $limit = 10, $offset = 0, $sort = 'created_at') {
@@ -133,20 +127,13 @@ class Post {
         return $this->loadSingle($sql, array($type, $id));
     }
 
-    public function loadByParentId($id) {
-        $sql = 'SELECT * FROM `posts` WHERE parent_id = ?';
-        return $this->loadSet($sql, array($id));
-
-    }
-
     protected function loadSet($sql, $params) {
         $results = array();
         $result = $this->mysqli->query($sql, $params);
         while ($row = $result->fetch_assoc()) {
+            $row['children'] = unserialize($row['children']);
+            $row['parent'] = unserialize($row['parent']);
             $tmp = new PostModel($row);
-            if ($tmp->has_children) {
-                $tmp->children = $this->loadByParentId($tmp->id);
-            }
             $results[$tmp->id] = $tmp;
         }
         unset($row);
@@ -157,9 +144,8 @@ class Post {
             $values[] = $row->id;
         }
         if ($inClause) {
-            $result = $this->mysqli->query('SELECT `post_id`, `name` FROM `tags` JOIN `post_to_tag` WHERE `post_id` IN ('. implode(',', $inClause).')', $values);
+            $result = $this->mysqli->query('SELECT `post_id`, `name` FROM `tags` AS t JOIN `post_to_tag` AS p2t ON t.id = p2t.tag_id WHERE p2t.`post_id` IN ('. implode(',', $inClause).')', $values);
             $tags = array();
-            $result = $this->mysqli->query($sql, array($row->id));
             while ($row = $result->fetch_assoc()) {
                 $tags = $results[$row['post_id']]->tags;
                 if ($tags) {

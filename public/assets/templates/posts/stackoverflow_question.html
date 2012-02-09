@@ -1,5 +1,5 @@
+<h3><img src="/assets/icons/stackoverflow.png" width="16" height="16" />Question: {{title}}</h3>
 <div class="post">
-    <h3><img src="/assets/icons/" width="16" height="16" />{{title}}</h3>
     <div class="post-body">{{&body}}</div>
     {{#has_children}}
     <ul class="children">
@@ -11,4 +11,9 @@
         {{/children}}
     </ul>
     {{/has_children}}
+    <ul class="tags">
+        {{#tags}}
+            <li>{{.}}</li>
+        {{/tags}}
+    </ul>
 </div>

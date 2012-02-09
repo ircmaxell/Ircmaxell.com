@@ -1,0 +1,25 @@
+<h3><img src="/assets/icons/stackoverflow.png" width="16" height="16" />Comment: {{title}}</h3>
+<div class="post">
+    <div class="post-body">{{&body}}</div>
+    {{#parent}}
+    <div class="parent">
+        <h4>{{title}}</h4>
+        <p>{{&summary}}</p>
+    </div>
+    {{/parent}}
+    {{#has_children}}
+    <ul class="children">
+        {{#children}}
+        <li>
+            <h4>{{user}} - {{title}}</h4>
+            <p>{{&body}}</p>
+        </li>
+        {{/children}}
+    </ul>
+    {{/has_children}}
+    <ul class="tags">
+        {{#tags}}
+            <li>{{.}}</li>
+        {{/tags}}
+    </ul>
+</div>

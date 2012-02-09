@@ -15,7 +15,6 @@ class GitHub {
      */
     public function getPost(array $data = array()) {
         $postData = array(
-            'parent_id' => null,
             'type' => 'github',
             'type_id' => $data['id'],
             'user' => $data['actor']['login'],
@@ -29,6 +28,7 @@ class GitHub {
             'has_children' => false,
             'children' => array(),
             'rawData' => $data,
+            'parent' => null,
         );
         switch ($data['type']) {
             case 'PushEvent':

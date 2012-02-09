@@ -76,7 +76,9 @@ class REST {
         if ($result) {
             return $result;
         }
-        throw new RuntimeException('Request to ' . $uri . ' Failed');
+        $info = curl_getinfo($curl);
+        
+        throw new RuntimeException('Request to ' . $uri . ' Failed [' . curl_errno($curl) . '] ' . curl_error($curl));
     }
 
 }

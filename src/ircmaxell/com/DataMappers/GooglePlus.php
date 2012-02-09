@@ -8,7 +8,6 @@ class GooglePlus {
 
     public function getPost(array $data = array()) {
         $postData = array(
-            'parent_id' => null,
             'type' => 'googleplus',
             'type_id' => $data['id'],
             'user' => $data['actor']['displayName'],
@@ -21,6 +20,7 @@ class GooglePlus {
             'has_children' => !empty($data['children']),
             'source_url' => isset($data['object']['url']) ? $data['object']['url'] : '',
             'children' => array(),
+            'parent' => null,
             'rawData' => $data,
         );
         if (!empty($data['object']['attachments'])) {

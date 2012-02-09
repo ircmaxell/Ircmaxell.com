@@ -9,17 +9,20 @@ var ircmaxell = ircmaxell || {};
     ircmaxell.Template = function(file, onReady) {
         var tmpl = this;
         if (!templateCache[file]) {
-            templateCallbacks[file] = $.Callbacks();
+            
             /**
             * Start the template fetch now
             */
-            $.get(file, function(data) {
-                templateCache[file] = data;
-                templateCallbacks[file].fire(data);
-                if (onReady) {
-                    onReady(tmpl);
-                }
-            }, 'html');
+            if (!templateCallbacks[file]) {
+                $.get(file, function(data) {
+                    templateCache[file] = data;
+                    templateCallbacks[file].fire(data);
+                    if (onReady) {
+                        onReady(tmpl);
+                    }
+                }, 'html');
+                templateCallbacks[file] = $.Callbacks();
+            }
         } else {
             if (onReady) {
                 onReady(tmpl);

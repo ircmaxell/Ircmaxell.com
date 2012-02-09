@@ -15,7 +15,6 @@ class StackOverflow {
      */
     public function getPost(array $data = array()) {
         $postData = array(
-            'parent_id' => null,
             'type' => 'stackoverflow',
             'type_id' => '',
             'user' => $data['owner']['display_name'],
@@ -25,10 +24,11 @@ class StackOverflow {
             'body' => $data['body'],
             'summary' => $data['body'],
             'created_at' => date('Y-m-d H:i:s', $data['creation_date']),
-            'has_children' => $data['has_children'],
             'source_url' => '',
             'children' => $data['children'],
+            'parent' => null,
             'rawData' => $data,
+            'tags' => $data['tags'],
         );
         if (isset($data['comment_id'])) {
             $postData['type'] = 'stackoverflow_comment';
@@ -54,7 +54,6 @@ class StackOverflow {
             $postData['title'] = $data['title'];
             $postData['summary'] = $data['body'];
             $postData['source_url'] = 'http://www.stackoverflow.com/q/' . $data['question_id'] . '/' . $data['owner']['user_id'];
-            $postData['tags'] = $data['tags'];
         }
         return new PostModel($postData);
     }

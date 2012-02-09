@@ -9,8 +9,9 @@ defined('PROXY') OR define('PROXY', isset($config['proxy']) ? $config['proxy'] :
 $mysqli = new ircmaxell\com\Sources\MySQLi($config['database']);
 
 $postMapper = new ircmaxell\com\DataMappers\Post($mysqli);
+$tagMapper = new ircmaxell\com\DataMappers\Tag($mysqli);
 
-$loader = new ircmaxell\com\ResourceLoader($config['resources'], array($mysqli, $postMapper));
+$loader = new ircmaxell\com\ResourceLoader($config['resources'], array($mysqli, $postMapper, $tagMapper));
 
 $router = new \ircmaxell\com\Router;
 

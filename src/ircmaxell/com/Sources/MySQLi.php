@@ -29,11 +29,12 @@ class MySQLi extends \MySQLi {
             $this->throwError($query);
         }
         $values = array();
-        $params = $this->prepareParams($params);
-        foreach ($params as &$value) {
+        $paramsProcessed = $this->prepareParams($params);
+        foreach ($paramsProcessed as &$value) {
             $values[] = &$value;
         }
-        if (!empty($values) && !call_user_func_array(array($stmt, 'bind_param'), $values)) {
+
+        if (!empty($params) && !call_user_func_array(array($stmt, 'bind_param'), $values)) {
             $this->throwError($query);
         }
         if (!$stmt->execute()) {
